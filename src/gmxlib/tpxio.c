@@ -2146,6 +2146,7 @@ static void do_atom(t_fileio *fio, t_atom *atom, int ngrp, gmx_bool bRead,
     gmx_fio_do_ushort(fio, atom->typeB);
     gmx_fio_do_int(fio, atom->ptype);
     gmx_fio_do_int(fio, atom->resind);
+    gmx_fio_do_int(fio,atom->molid); /* Add the field here to avoid messing up other structs*/
     if (file_version >= 52)
     {
         gmx_fio_do_int(fio, atom->atomnumber);
@@ -2361,6 +2362,38 @@ static void do_groups(t_fileio *fio, gmx_groups_t *groups,
         }
     }
 }
+
+
+/* Stores long range interactions in the topology file*/
+static void do_longrange(t_fileio *fio,t_scaling *lr_vdw,t_scaling *lr_q,gmx_bool bRead)
+{
+        gmx_fio_do_int(fio,lr_vdw->nr);
+        gmx_fio_do_int(fio,lr_q->nr);
+        //Allocate buffer in case of mdrun
+        if(bRead)
+        {
+                lr_vdw->lookup=malloc((lr_vdw->nr)*sizeof(float));
+                lr_q->lookup=malloc((lr_q->nr)*sizeof(float));
+                for(int i=0;i<=lr_vdw->nr;i++)
+                {
+                        lr_vdw->lookup[i]=malloc((i+1)*sizeof(float));
+                        lr_q->lookup[i]=malloc((i+1)*sizeof(float));
+                }
+        }
+        for(int i=0;i<=lr_vdw->nr;i++) //ignore writing 0-0? what about intra-molecular scaling
+        {
+                for(int j=0;j<i;j++)
+                {
+
+                gmx_fio_do_float(fio,lr_vdw->lookup[i][j]);
+                gmx_fio_do_float(fio,lr_q->lookup[i][j]);
+
+                }
+        }
+
+}
+
+
 
 static void do_atomtypes(t_fileio *fio, t_atomtypes *atomtypes, gmx_bool bRead,
                          t_symtab *symtab, int file_version)
@@ -2711,6 +2744,7 @@ static void do_mtop(t_fileio *fio, gmx_mtop_t *mtop, gmx_bool bRead,
                     int file_version)
 {
     int      mt, mb, i;
+    int      replica_cnt;
     t_blocka dumb;
 
     if (bRead)
@@ -2843,6 +2877,10 @@ static void do_mtop(t_fileio *fio, gmx_mtop_t *mtop, gmx_bool bRead,
             sfree(dumb.a);
         }
     }
+ 
+
+    /* DO NOT write long range interactions before this section!!*/
+    do_longrange(fio,&(mtop->table_vdw),&(mtop->table_q),bRead);
 
     if (bRead)
     {
