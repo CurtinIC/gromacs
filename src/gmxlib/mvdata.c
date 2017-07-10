@@ -203,6 +203,14 @@ static void bc_atoms(const t_commrec *cr, t_symtab *symtab, t_atoms *atoms)
     bc_strings(cr, symtab, atoms->nr, &atoms->atomtypeB);
 }
 
+/* MPI data structure for scaled LR */
+static void bc_scaling(const t_commrec *cr,int size, t_scaling *table)
+{
+ block_bc(cr,table->nr);
+ gmx_bcast(size*sizeof(float),&(table->lookup),cr);
+}
+
+
 static void bc_groups(const t_commrec *cr, t_symtab *symtab,
                       int natoms, gmx_groups_t *groups)
 {
@@ -800,4 +808,11 @@ void bcast_ir_mtop(const t_commrec *cr, t_inputrec *inputrec, gmx_mtop_t *mtop)
 
     bc_block(cr, &mtop->mols);
     bc_groups(cr, &mtop->symtab, mtop->natoms, &mtop->groups);
+   
+    /* Broadcast scaled parameters from master */
+    snew_bc(cr,mtop->table_vdw.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
+    snew_bc(cr,mtop->table_q.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
+    bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)-1)/2),&mtop->table_q);
+    bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)-1)/2),&mtop->table_vdw);
+
 }
