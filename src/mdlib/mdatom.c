@@ -122,6 +122,17 @@ void atoms2md(gmx_mtop_t *mtop, t_inputrec *ir,
 
     molblock = mtop->molblock;
 
+
+    /* While debugging, if table_vdw/table_q point to NULL, the issue
+     * could be that the topology file may not have been communicated 
+     * well. Ref. lines around 1207 in runner.c and also check
+     * MPI data structs in  mvdata.c 
+     */
+
+    md->table_vdw=&(mtop->table_vdw);
+    md->table_q=&(mtop->table_q);
+
+
     /* Index==NULL indicates particle decomposition,
      * unless we have an empty DD node, so also check for homenr and start.
      * This should be signaled properly with an extra parameter or nindex==-1.

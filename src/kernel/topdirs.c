@@ -351,6 +351,10 @@ void DS_Init(DirStack **DS)
         set_nec(&(necessary[d_dihedral_restraints]), d_atoms, d_none);
         set_nec(&(necessary[d_cmap]), d_atoms, d_none);
 
+  	/* grompp  - buffer for scaling parameters*/
+	set_nec(&(necessary[d_scale_vdw]),d_none);
+        set_nec(&(necessary[d_scale_q]),d_none);
+
         for (i = 0; (i < d_maxdir); i++)
         {
             if (debug)

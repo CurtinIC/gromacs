@@ -1567,6 +1567,10 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
          * as this can not be done now with domain decomposition.
          */
         mdatoms = init_mdatoms(fplog, mtop, inputrec->efep != efepNO);
+	
+	/*Check this section again*/
+       	/*mdatoms->table_q=&(mtop->table_q);	
+	mdatoms->table_vdw=&(mtop->table_vdw);*/
 
         if (mdatoms->nPerturbed > 0 && inputrec->cutoff_scheme == ecutsVERLET)
         {
