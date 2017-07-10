@@ -477,9 +477,6 @@ static void molinfo2mtop(int nmi, t_molinfo *mi, gmx_mtop_t *mtop)
     gmx_moltype_t *molt;
 
     mtop->nmoltype = nmi;
-    mtop->table_vdw=mi->table_vdw; /* Include vdw interaction table in the topology */
-    mtop->table_q=mi->table_q; /* Charge interaction table in the topology */
-
     snew(mtop->moltype, nmi);
     for (m = 0; m < nmi; m++)
     {
