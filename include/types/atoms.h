@@ -59,6 +59,7 @@ typedef struct {
     int            resind;      /* Index into resinfo (in t_atoms)      */
     int            atomnumber;  /* Atomic Number or NOTSET              */
     char           elem[4];     /* Element name                         */
+    int            molid;       /* Which molecule# does this atom belong to?*/
 } t_atom;
 
 typedef struct {

@@ -63,6 +63,11 @@ typedef struct {
     real                  *chargeA, *chargeB;
     gmx_bool              *bPerturbed;
     int                   *typeA, *typeB;
+
+    int                   *molid; /* Dump molecular id here */
+    t_scaling              *table_vdw; 
+    t_scaling              *table_q;
+
     unsigned short        *ptype;
     unsigned short        *cTC, *cENER, *cACC, *cFREEZE, *cVCM;
     unsigned short        *cU1, *cU2, *cORF;
