@@ -562,6 +562,7 @@ static char **read_topol(const char *infile, const char *outfile,
     char            genpairs[32];
     char           *dirstr, *dummy2;
     int             nrcopies, nmol, nmolb = 0, nscan, ncombs, ncopy;
+    int             intr_vdw_cnt,intr_q_cnt; /* How many molecules with q/vdw interactions?*/
     double          fLJ, fQQ, fPOW;
     gmx_molblock_t *molb  = NULL;
     t_topology     *block = NULL;
@@ -573,6 +574,7 @@ static char **read_topol(const char *infile, const char *outfile,
     real            fudgeLJ = -1;    /* Multiplication factor to generate 1-4 from LJ */
     gmx_bool        bReadDefaults, bReadMolType, bGenPairs, bWarn_copy_A_B;
     double          qt = 0, qBt = 0; /* total charge */
+    int             line_vdw=1, line_q=1;/* # of LR interactions specified same as # of molecules?*/
     t_bond_atomtype batype;
     int             lastcg = -1;
     int             dcatt  = -1, nmol_couple;
@@ -864,6 +866,7 @@ static char **read_topol(const char *infile, const char *outfile,
                                 }
                                 ntype  = get_atomtype_ntypes(atype);
                                 ncombs = (ntype*(ntype+1))/2;
+                                 
                                 generate_nbparams(comb, nb_funct, &(plist[nb_funct]), atype, wi);
                                 ncopy = copy_nbparams(nbparam, nb_funct, &(plist[nb_funct]),
                                                       ntype);
@@ -921,6 +924,59 @@ static char **read_topol(const char *infile, const char *outfile,
                             push_cmap(d, plist, mi0->plist, &(mi0->atoms), atype, pline,
                                       &bWarn_copy_A_B, wi);
                             break;
+                        case d_scale_vdw: /* LR-Van der Waal's check*/
+                                if(nmolb<=1)  /*If the section is defined before [molecules]*/
+                                {
+                                        gmx_fatal(FARGS, "\x1\e[31;3mvdw scaling parameters ought to be defined after -- [molecules] section.\x1b[0m\n");
+                                } 
+                                trim(pline);
+                                if (!(line_vdw-1)){  /* Dyn. allocate lower triangular mtx rows*/
+                                        (*molinfo)->table_vdw.nr=nmolb-1;
+                                        (*molinfo)->table_vdw.lookup=malloc(nmolb*sizeof(float)*nmolb);
+                                }
+                                char *vdw_thisline=strdup(pline);
+                                char *vdw_found;
+                                int vdw_col=0;
+                                float vdw_local; //Seg-faults without a local assignment
+                                while((vdw_found=strsep(&vdw_thisline," "))!=NULL)
+                                {
+                                        if(!vdw_col)
+                                        {
+                                                 (*molinfo)->table_vdw.lookup[line_vdw]=malloc((line_vdw+1)*sizeof(float));
+                                        }/*Nth row has N-1 elements*/
+                                             sscanf(vdw_found,"%f",&vdw_local);
+                                             (*molinfo)->table_vdw.lookup[line_vdw][vdw_col++]=vdw_local;
+                                }
+                                line_vdw++;
+                                break;
+                        case d_scale_q:
+                               if(nmolb<=1)
+                               {
+                                        gmx_fatal(FARGS, "\x1\e[31;3mCharge scaling parameters ought to be defined after -- [molecules] section.\x1b[0m\n");
+                                }
+
+                                trim(pline);
+                                if (!(line_q-1)) /*Dyn. allocate lower triangular matrix's rows*/
+                                {
+                                         (*molinfo)->table_q.nr=nmolb-1;
+                                         (*molinfo)->table_q.lookup=malloc(nmolb*sizeof(float)*nmolb);
+                                }
+                                char *q_thisline=strdup(pline);
+                                char *q_found;
+                                int q_col=0;
+                                float q_local; //Seg-faults without a local assignment on GCC
+                                while((q_found=strsep(&q_thisline," "))!=NULL)
+                                {
+                                    if(!q_col)
+                                    {
+                                             (*molinfo)->table_q.lookup[line_q]=malloc((line_q+1)*sizeof(float));
+                                    }
+                                         sscanf(q_found,"%f",&q_local);
+                                         (*molinfo)->table_q.lookup[line_q][q_col++]=q_local;
+                                }/* Nth row has N-1 elements*/
+                                line_q++;
+                                break;
+
 
                         case d_vsitesn:
                             push_vsitesn(d, plist, mi0->plist, &(mi0->atoms), atype, pline, wi);
@@ -962,6 +1018,14 @@ static char **read_topol(const char *infile, const char *outfile,
                                 gmx_fatal(FARGS, "Molecule type '%s' contains no atoms",
                                           *mi0->name);
                             }
+			    /* Assign molids to atoms */
+                            for(int tmp=0;tmp<mi0->atoms.nr;tmp++)
+                            {
+
+                                mi0->atoms.atom[tmp].molid=nmolb-1; 
+
+                            }
+
                             fprintf(stderr,
                                     "Excluding %d bonded neighbours molecule type '%s'\n",
                                     mi0->nrexcl, *mi0->name);
@@ -1013,6 +1077,16 @@ static char **read_topol(const char *infile, const char *outfile,
         }
     }
     while (!done);
+    /*Sanity check for long range parametric inputs*/
+    if((line_vdw<nmolb)&&(line_vdw!=1))
+    {
+         gmx_fatal(FARGS, "\x1\e[31;3mYour vdw scaling parameters do not match # of possible molecular interactions.\x1b[0m");
+    }
+    if((line_q<nmolb)&&(line_q!=1))
+    {
+         gmx_fatal(FARGS, "\x1\e[31;3mYour charge scaling parameters do not match # of possible molecular interactions.\x1b[0m");
+    }
+
     status = cpp_close_file(&handle);
     if (status != eCPP_OK)
     {
