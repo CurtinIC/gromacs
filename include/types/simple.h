@@ -54,6 +54,8 @@
 
 /* Information about integer data type sizes */
 #include <limits.h>
+/* Best place to include scaling parameters */
+#include "scaling.h"
 
 #ifdef __cplusplus
 extern "C" {

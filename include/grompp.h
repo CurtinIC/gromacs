@@ -91,6 +91,8 @@ typedef struct {
 typedef struct {
     char            **name;
     int               nrexcl;       /* Number of exclusions per atom	*/
+    t_scaling         table_vdw; 
+    t_scaling         table_q; 
     gmx_bool          excl_set;     /* Have exclusions been generated?	*/
     gmx_bool          bProcessed;   /* Has the mol been processed           */
     t_atoms           atoms;        /* Atoms                                */
@@ -147,6 +149,8 @@ typedef enum {
     d_orientation_restraints,
     d_dihedral_restraints,
     d_cmap,
+    d_scale_vdw, /* Sensitive to the location */ 
+    d_scale_q,   /* Do not mention anything after d_maxdir if you ought to read off the input*/
     d_maxdir,
     d_invalid,
     d_none
@@ -191,6 +195,8 @@ static const char *ds[d_maxdir+1] = {
     "orientation_restraints",
     "dihedral_restraints",
     "cmap",
+    "scale_vdw", /* Sensitive to position with in struct */
+    "scale_q", /* Coherent with the directive specification above*/
     "invalid"
 };
 

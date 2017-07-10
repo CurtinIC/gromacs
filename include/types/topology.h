@@ -101,6 +101,8 @@ typedef struct {
     t_block          mols;         /* The molecules                        */
     gmx_groups_t     groups;
     t_symtab         symtab;       /* The symbol table                     */
+    t_scaling        table_vdw;    /* Van der Waal's scaling 		   */
+    t_scaling        table_q;      /* Charge scaling to be included in the topology file */
 } gmx_mtop_t;
 
 /* The mdrun node-local topology struct, completely written out */
