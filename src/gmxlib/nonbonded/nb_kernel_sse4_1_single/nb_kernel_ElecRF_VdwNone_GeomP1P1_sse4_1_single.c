@@ -56,6 +56,14 @@
  * Geometry:                   Particle-Particle
  * Calculate force/pot:        PotentialAndForce
  */
+
+//Having a common function defined elsewhere returns FP rrrors
+float ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(t_scaling *table,int inr,int jnr){
+	return (inr>jnr?table->lookup[inr][jnr]:(inr==jnr?1.0:table->lookup[jnr][inr]));
+    }
+
+
+
 void
 nb_kernel_ElecRF_VdwNone_GeomP1P1_VF_sse4_1_single
                     (t_nblist * gmx_restrict                nlist,
@@ -96,6 +104,9 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_VF_sse4_1_single
     x                = xx[0];
     f                = ff[0];
 
+    //For non-bonded interactions
+    float	     ij_scaling[4];
+	
     nri              = nlist->nri;
     iinr             = nlist->iinr;
     jindex           = nlist->jindex;
@@ -190,6 +201,14 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_VF_sse4_1_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            //Four different array pointers..jnrA..really?? 
+            ij_scaling[0]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+
+	    //Scale charges
+	    jq0		     =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
 
             /* Compute parameters for interactions between i and j atoms */
             qq00             = _mm_mul_ps(iq0,jq0);
@@ -207,6 +226,7 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_VF_sse4_1_single
             tx               = _mm_mul_ps(fscal,dx00);
             ty               = _mm_mul_ps(fscal,dy00);
             tz               = _mm_mul_ps(fscal,dz00);
+
 
             /* Update vectorial force */
             fix0             = _mm_add_ps(fix0,tx);
@@ -264,6 +284,16 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_VF_sse4_1_single
             /* Load parameters for j particles */
             jq0              = gmx_mm_load_4real_swizzle_ps(charge+jnrA+0,charge+jnrB+0,
                                                               charge+jnrC+0,charge+jnrD+0);
+
+	    //Independent scaling
+	    ij_scaling[0]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+
+            //Scale charges
+            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+           
 
             /**************************
              * CALCULATE INTERACTIONS *
@@ -372,6 +402,9 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_F_sse4_1_single
     x                = xx[0];
     f                = ff[0];
 
+//Charge scaling only
+    float            ij_scaling[4];
+
     nri              = nlist->nri;
     iinr             = nlist->iinr;
     jindex           = nlist->jindex;
@@ -460,6 +493,17 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_F_sse4_1_single
             jq0              = gmx_mm_load_4real_swizzle_ps(charge+jnrA+0,charge+jnrB+0,
                                                               charge+jnrC+0,charge+jnrD+0);
 
+
+	    //Scaled interactions
+	    ij_scaling[0]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+
+            //Scale charges
+            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+            
+
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
@@ -533,6 +577,15 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_F_sse4_1_single
             /* Load parameters for j particles */
             jq0              = gmx_mm_load_4real_swizzle_ps(charge+jnrA+0,charge+jnrB+0,
                                                               charge+jnrC+0,charge+jnrD+0);
+
+            //Scaled interactions
+	    ij_scaling[0]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+
+            //Scale charges
+            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
 
             /**************************
              * CALCULATE INTERACTIONS *

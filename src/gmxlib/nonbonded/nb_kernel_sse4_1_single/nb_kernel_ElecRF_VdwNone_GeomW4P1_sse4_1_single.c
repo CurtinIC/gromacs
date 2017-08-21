@@ -56,6 +56,13 @@
  * Geometry:                   Water4-Particle
  * Calculate force/pot:        PotentialAndForce
  */
+
+float ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(t_scaling *table,int inr,int jnr){
+	return (inr>jnr?table->lookup[inr][jnr]:(inr==jnr?1.0:table->lookup[jnr][inr]));
+    }
+
+
+
 void
 nb_kernel_ElecRF_VdwNone_GeomW4P1_VF_sse4_1_single
                     (t_nblist * gmx_restrict                nlist,
@@ -101,6 +108,9 @@ nb_kernel_ElecRF_VdwNone_GeomW4P1_VF_sse4_1_single
     __m128           two     = _mm_set1_ps(2.0);
     x                = xx[0];
     f                = ff[0];
+
+   //For non-bonded interactions
+   float            ij_scaling[4];
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
@@ -222,6 +232,14 @@ nb_kernel_ElecRF_VdwNone_GeomW4P1_VF_sse4_1_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+
+           //Four different array pointers..jnrA..really?? 
+           ij_scaling[0]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+           ij_scaling[1]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+           ij_scaling[2]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+           ij_scaling[3]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+           //Scale charges
+           jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
 
             /* Compute parameters for interactions between i and j atoms */
             qq10             = _mm_mul_ps(iq1,jq0);
@@ -381,6 +399,13 @@ nb_kernel_ElecRF_VdwNone_GeomW4P1_VF_sse4_1_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+          //Four different array pointers..jnrA..really?? 
+          ij_scaling[0]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+          ij_scaling[1]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+          ij_scaling[2]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+          ij_scaling[3]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+          //Scale charges
+          jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
 
             /* Compute parameters for interactions between i and j atoms */
             qq10             = _mm_mul_ps(iq1,jq0);
@@ -562,6 +587,8 @@ nb_kernel_ElecRF_VdwNone_GeomW4P1_F_sse4_1_single
     x                = xx[0];
     f                = ff[0];
 
+   //For non-bonded interactions
+   float            ij_scaling[4];
     nri              = nlist->nri;
     iinr             = nlist->iinr;
     jindex           = nlist->jindex;
@@ -679,6 +706,14 @@ nb_kernel_ElecRF_VdwNone_GeomW4P1_F_sse4_1_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+           //Four different array pointers..jnrA..really?? 
+           ij_scaling[0]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+           ij_scaling[1]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+           ij_scaling[2]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+           ij_scaling[3]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+           //Scale charges
+           jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+           
 
             /* Compute parameters for interactions between i and j atoms */
             qq10             = _mm_mul_ps(iq1,jq0);
@@ -826,6 +861,13 @@ nb_kernel_ElecRF_VdwNone_GeomW4P1_F_sse4_1_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+           //Four different array pointers..jnrA..really?? 
+           ij_scaling[0]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+           ij_scaling[1]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+           ij_scaling[2]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+           ij_scaling[3]=ElecRF_VdwNone_GeomW4P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+           //Scale charges
+           jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
 
             /* Compute parameters for interactions between i and j atoms */
             qq10             = _mm_mul_ps(iq1,jq0);
