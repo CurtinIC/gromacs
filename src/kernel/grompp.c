@@ -465,6 +465,11 @@ static void renumber_moltypes(gmx_mtop_t *sys,
             minew[i] = (*molinfo)[mi];
         }
     }
+    /* Memory leaks without reinitiating minew*/
+    minew->table_q=(*molinfo)->table_q;
+    minew->table_vdw=(*molinfo)->table_vdw; 
+
+
     sfree(*molinfo);
 
     *nmolinfo = norder;
