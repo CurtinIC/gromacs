@@ -158,6 +158,7 @@ void atoms2md(gmx_mtop_t *mtop, t_inputrec *ir,
         srenew(md->massT, md->nalloc);
         srenew(md->invmass, md->nalloc);
         srenew(md->chargeA, md->nalloc);
+	srenew(md->molid,md->nalloc);
         if (md->nPerturbed)
         {
             srenew(md->chargeB, md->nalloc);
@@ -240,7 +241,8 @@ void atoms2md(gmx_mtop_t *mtop, t_inputrec *ir,
             ag   = index[i];
         }
         gmx_mtop_atomnr_to_atom(alook, ag, &atom);
-
+	/*Allocate molid buffer*/
+	md->molid[i]=atom->molid;
         if (md->cFREEZE)
         {
             md->cFREEZE[i] = ggrpnr(groups, egcFREEZE, ag);
