@@ -56,6 +56,11 @@
  * Geometry:                   Particle-Particle
  * Calculate force/pot:        PotentialAndForce
  */
+
+float ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(t_scaling *table,int inr,int jnr){
+        return (inr>jnr?table->lookup[inr][jnr]:(inr==jnr?1.0:table->lookup[jnr][inr]));
+    }
+
 void
 nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_sse4_1_single
                     (t_nblist * gmx_restrict                nlist,
@@ -99,6 +104,9 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_sse4_1_single
     __m128           two     = _mm_set1_ps(2.0);
     x                = xx[0];
     f                = ff[0];
+ 
+   //For non-bonded interactions
+   float            ij_scaling[4];
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
@@ -201,12 +209,18 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_sse4_1_single
                                          &c6_00,&c12_00);
 
             /* LENNARD-JONES DISPERSION/REPULSION */
+            //Vdw scaling
+            ij_scaling[0]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+
 
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
             vvdw6            = _mm_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm_mul_ps(c12_00,_mm_mul_ps(rinvsix,rinvsix));
-            vvdw             = _mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) );
-            fvdw             = _mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00);
+            vvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth)));
+            fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
             vvdwsum          = _mm_add_ps(vvdwsum,vvdw);
@@ -287,12 +301,18 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_sse4_1_single
                                          &c6_00,&c12_00);
 
             /* LENNARD-JONES DISPERSION/REPULSION */
+            //Vdw scaling
+            ij_scaling[0]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecNone_VdwLJ_GeomP1P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrD]);
+
 
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
             vvdw6            = _mm_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm_mul_ps(c12_00,_mm_mul_ps(rinvsix,rinvsix));
-            vvdw             = _mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) );
-            fvdw             = _mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00);
+            vvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth)));
+            fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
             vvdw             = _mm_andnot_ps(dummy_mask,vvdw);
@@ -393,6 +413,9 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_F_sse4_1_single
     __m128           two     = _mm_set1_ps(2.0);
     x                = xx[0];
     f                = ff[0];
+
+   //For non-bonded interactions
+   float            ij_scaling[4];
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
