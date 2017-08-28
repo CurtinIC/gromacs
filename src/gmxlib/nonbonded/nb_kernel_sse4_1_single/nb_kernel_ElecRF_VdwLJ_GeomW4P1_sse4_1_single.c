@@ -273,7 +273,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW4P1_VF_sse4_1_single
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
             vvdw6            = _mm_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm_mul_ps(c12_00,_mm_mul_ps(rinvsix,rinvsix));
-            vvdw             = _mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) );
+            vvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) ));
             fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
@@ -492,7 +492,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW4P1_VF_sse4_1_single
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
             vvdw6            = _mm_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm_mul_ps(c12_00,_mm_mul_ps(rinvsix,rinvsix));
-            vvdw             = _mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) );
+            vvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth)));
             fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
