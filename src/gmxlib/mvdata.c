@@ -206,8 +206,20 @@ static void bc_atoms(const t_commrec *cr, t_symtab *symtab, t_atoms *atoms)
 /* MPI data structure for scaled LR */
 static void bc_scaling(const t_commrec *cr,int size, t_scaling *table)
 {
+ int i=0,j=0;
  block_bc(cr,table->nr);
- gmx_bcast(size*sizeof(float),&(table->lookup),cr);
+ for(j=0;j<=(table->nr);j++) 
+ {
+ 
+  for(i=0;i<j;i++) /*< becomes = if you wish to include the diagonal*/
+  {
+    gmx_bcast(sizeof(float),&(table->lookup[j][i]),cr);
+  }
+
+
+ }
+
+ //gmx_bcast(size*sizeof(float),&(table->lookup),cr);
 }
 
 
@@ -810,8 +822,22 @@ void bcast_ir_mtop(const t_commrec *cr, t_inputrec *inputrec, gmx_mtop_t *mtop)
     bc_groups(cr, &mtop->symtab, mtop->natoms, &mtop->groups);
    
     /* Broadcast scaled parameters from master */
-    snew_bc(cr,mtop->table_vdw.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
-    snew_bc(cr,mtop->table_q.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
+    /* On other nodes */
+    if (!MASTER(cr))
+    {
+	mtop->table_q.lookup=malloc(mtop->nmolblock*sizeof(float)*mtop->nmolblock);
+        mtop->table_vdw.lookup=malloc(mtop->nmolblock*sizeof(float)*mtop->nmolblock);
+        for(i=0;i<mtop->nmolblock;i++)
+        {
+		
+   		mtop->table_q.lookup[i]=malloc((i+1)*sizeof(float));
+		mtop->table_vdw.lookup[i]=malloc((i+1)*sizeof(float));
+
+	}
+        
+    	//snew_bc(cr,mtop->table_vdw.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
+    	//snew_bc(cr,mtop->table_q.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
+    }
     bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)-1)/2),&mtop->table_q);
     bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)-1)/2),&mtop->table_vdw);
 
