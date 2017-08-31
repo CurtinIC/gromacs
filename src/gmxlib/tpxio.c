@@ -2380,9 +2380,9 @@ static void do_longrange(t_fileio *fio,t_scaling *lr_vdw,t_scaling *lr_q,gmx_boo
                         lr_q->lookup[i]=malloc((i+1)*sizeof(float));
                 }
         }
-        for(int i=0;i<=lr_vdw->nr;i++) //ignore writing 0-0? what about intra-molecular scaling
+        for(int i=0;i<lr_vdw->nr;i++) //ignore writing 0-0? what about intra-molecular scaling
         {
-                for(int j=0;j<i;j++)
+                for(int j=0;j<=i;j++) /* < if the diagonal is ignored! */
                 {
 
                 gmx_fio_do_float(fio,lr_vdw->lookup[i][j]);

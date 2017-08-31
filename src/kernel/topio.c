@@ -574,7 +574,7 @@ static char **read_topol(const char *infile, const char *outfile,
     real            fudgeLJ = -1;    /* Multiplication factor to generate 1-4 from LJ */
     gmx_bool        bReadDefaults, bReadMolType, bGenPairs, bWarn_copy_A_B;
     double          qt = 0, qBt = 0; /* total charge */
-    int             line_vdw=1, line_q=1;/* # of LR interactions specified same as # of molecules?*/
+    int             line_vdw=0, line_q=0;/* # of LR interactions specified same as # of molecules?*/
     t_bond_atomtype batype;
     int             lastcg = -1;
     int             dcatt  = -1, nmol_couple;
@@ -930,8 +930,8 @@ static char **read_topol(const char *infile, const char *outfile,
                                         gmx_fatal(FARGS, "\x1\e[31;3mvdw scaling parameters ought to be defined after -- [molecules] section.\x1b[0m\n");
                                 } 
                                 trim(pline);
-                                if (!(line_vdw-1)){  /* Dyn. allocate lower triangular mtx rows*/
-                                        (*molinfo)->table_vdw.nr=nmolb-1;
+                                if (!(line_vdw)){  /* Dyn. allocate lower triangular mtx rows*/
+                                        (*molinfo)->table_vdw.nr=nmolb;
                                         (*molinfo)->table_vdw.lookup=malloc(nmolb*sizeof(float)*nmolb);
                                 }
                                 char *vdw_thisline=strdup(pline);
@@ -956,9 +956,9 @@ static char **read_topol(const char *infile, const char *outfile,
                                 }
 
                                 trim(pline);
-                                if (!(line_q-1)) /*Dyn. allocate lower triangular matrix's rows*/
+                                if (!(line_q)) /*Dyn. allocate lower triangular matrix's rows*/
                                 {
-                                         (*molinfo)->table_q.nr=nmolb-1;
+                                         (*molinfo)->table_q.nr=nmolb;
                                          (*molinfo)->table_q.lookup=malloc(nmolb*sizeof(float)*nmolb);
                                 }
                                 char *q_thisline=strdup(pline);

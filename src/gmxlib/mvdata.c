@@ -208,10 +208,10 @@ static void bc_scaling(const t_commrec *cr,int size, t_scaling *table)
 {
  int i=0,j=0;
  block_bc(cr,table->nr);
- for(j=0;j<=(table->nr);j++) 
+ for(j=0;j<(table->nr);j++) 
  {
  
-  for(i=0;i<j;i++) /*< becomes = if you wish to include the diagonal*/
+  for(i=0;i<=j;i++) /*< becomes = if you wish to include the diagonal*/
   {
     gmx_bcast(sizeof(float),&(table->lookup[j][i]),cr);
   }
@@ -838,7 +838,7 @@ void bcast_ir_mtop(const t_commrec *cr, t_inputrec *inputrec, gmx_mtop_t *mtop)
     	//snew_bc(cr,mtop->table_vdw.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
     	//snew_bc(cr,mtop->table_q.lookup,((mtop->nmolblock)*((mtop->nmolblock)-1)/2));
     }
-    bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)-1)/2),&mtop->table_q);
-    bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)-1)/2),&mtop->table_vdw);
+    bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)+1)/2),&mtop->table_q);  /* mtop->nmolblock*(mtop->nmolblock-1)/2 if diagonal is not included */
+    bc_scaling(cr,((mtop->nmolblock)*((mtop->nmolblock)+1)/2),&mtop->table_vdw);
 
 }
