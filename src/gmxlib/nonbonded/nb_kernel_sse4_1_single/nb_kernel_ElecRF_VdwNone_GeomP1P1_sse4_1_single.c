@@ -59,7 +59,7 @@
 
 //Having a common function defined elsewhere returns FP rrrors
 float ElecRF_VdwNone_GeomP1P1_sse4_1_single_interaction_ij(t_scaling *table,int inr,int jnr){
-	return (inr>jnr?table->lookup[inr][jnr]:(inr==jnr?1.0:table->lookup[jnr][inr]));
+	return (inr>=jnr?table->lookup[inr][jnr]:table->lookup[jnr][inr]);
     }
 
 
