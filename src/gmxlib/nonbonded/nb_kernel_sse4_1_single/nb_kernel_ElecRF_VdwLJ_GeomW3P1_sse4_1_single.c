@@ -250,7 +250,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_VF_sse4_1_single
             ij_scaling[2]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
             ij_scaling[3]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
             //Scale charges
-            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+            jq0              =_mm_mul_ps(_mm_loadu_ps(ij_scaling),jq0);
 
 
             /* Compute parameters for interactions between i and j atoms */
@@ -276,8 +276,8 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_VF_sse4_1_single
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
             vvdw6            = _mm_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm_mul_ps(c12_00,_mm_mul_ps(rinvsix,rinvsix));
-            vvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) ));
-            fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
+            vvdw             = _mm_mul_ps(_mm_loadu_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) ));
+            fvdw             = _mm_mul_ps(_mm_loadu_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm_add_ps(velecsum,velec);
@@ -442,7 +442,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_VF_sse4_1_single
             ij_scaling[2]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
             ij_scaling[3]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
             //Scale charges
-            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+            jq0              =_mm_mul_ps(_mm_loadu_ps(ij_scaling),jq0);
 
 
             /* Compute parameters for interactions between i and j atoms */
@@ -468,8 +468,8 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_VF_sse4_1_single
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
             vvdw6            = _mm_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm_mul_ps(c12_00,_mm_mul_ps(rinvsix,rinvsix));
-            vvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) ));
-            fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
+            vvdw             = _mm_mul_ps(_mm_loadu_ps(ij_scaling),_mm_sub_ps( _mm_mul_ps(vvdw12,one_twelfth) , _mm_mul_ps(vvdw6,one_sixth) ));
+            fvdw             = _mm_mul_ps(_mm_loadu_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(vvdw12,vvdw6),rinvsq00));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm_andnot_ps(dummy_mask,velec);
@@ -787,7 +787,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_F_sse4_1_single
             ij_scaling[2]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
             ij_scaling[3]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
             //Scale charges
-            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+            jq0              =_mm_mul_ps(_mm_loadu_ps(ij_scaling),jq0);
 
 
             /* Compute parameters for interactions between i and j atoms */
@@ -810,7 +810,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_F_sse4_1_single
 
 
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
-            fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(_mm_mul_ps(c12_00,rinvsix),c6_00),_mm_mul_ps(rinvsix,rinvsq00)));
+            fvdw             = _mm_mul_ps(_mm_loadu_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(_mm_mul_ps(c12_00,rinvsix),c6_00),_mm_mul_ps(rinvsix,rinvsq00)));
 
             fscal            = _mm_add_ps(felec,fvdw);
 
@@ -962,7 +962,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_F_sse4_1_single
             ij_scaling[2]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrC]);
             ij_scaling[3]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr],mdatoms->molid[jnrD]);
             //Scale charges
-            jq0              =_mm_mul_ps(_mm_load_ps(ij_scaling),jq0);
+            jq0              =_mm_mul_ps(_mm_loadu_ps(ij_scaling),jq0);
 
 
             /* Compute parameters for interactions between i and j atoms */
@@ -984,7 +984,7 @@ nb_kernel_ElecRF_VdwLJ_GeomW3P1_F_sse4_1_single
             ij_scaling[3]=ElecRF_VdwLJ_GeomW3P1_sse4_1_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr],mdatoms->molid[jnrD]);
 
             rinvsix          = _mm_mul_ps(_mm_mul_ps(rinvsq00,rinvsq00),rinvsq00);
-            fvdw             = _mm_mul_ps(_mm_load_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(_mm_mul_ps(c12_00,rinvsix),c6_00),_mm_mul_ps(rinvsix,rinvsq00)));
+            fvdw             = _mm_mul_ps(_mm_loadu_ps(ij_scaling),_mm_mul_ps(_mm_sub_ps(_mm_mul_ps(c12_00,rinvsix),c6_00),_mm_mul_ps(rinvsix,rinvsq00)));
 
             fscal            = _mm_add_ps(felec,fvdw);
 
