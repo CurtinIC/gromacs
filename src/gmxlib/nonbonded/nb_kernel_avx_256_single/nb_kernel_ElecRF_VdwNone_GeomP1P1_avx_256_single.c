@@ -105,7 +105,7 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_VF_avx_256_single
     f                = ff[0];
 
     //For non-bonded interactions
-    float            ij_scaling[4];
+    float            ij_scaling[8];
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
@@ -451,7 +451,7 @@ nb_kernel_ElecRF_VdwNone_GeomP1P1_F_avx_256_single
     f                = ff[0];
 
     //For non-bonded interactions
-    float            ij_scaling[4];
+    float            ij_scaling[8];
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
