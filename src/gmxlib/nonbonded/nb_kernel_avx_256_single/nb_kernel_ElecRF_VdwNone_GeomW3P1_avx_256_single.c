@@ -56,6 +56,11 @@
  * Geometry:                   Water3-Particle
  * Calculate force/pot:        PotentialAndForce
  */
+
+float ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(t_scaling *table,int inr,int jnr){
+        return (inr>=jnr?table->lookup[inr][jnr]:table->lookup[jnr][inr]);
+    }
+
 void
 nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
                     (t_nblist * gmx_restrict                nlist,
@@ -104,6 +109,8 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
     __m256           two     = _mm256_set1_ps(2.0);
     x                = xx[0];
     f                = ff[0];
+   //For non-bonded interactions
+   float            ij_scaling[8];
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
@@ -241,9 +248,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq00             = _mm256_mul_ps(iq0,jq0);
+            qq00             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_add_ps(rinv00,_mm256_mul_ps(krf,rsq00)),crf));
@@ -271,9 +287,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+  	    /*Recompute scaling for iq1*/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrA]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrB]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrC]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrD]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrE]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrF]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrG]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrH]);
 
             /* Compute parameters for interactions between i and j atoms */
-            qq10             = _mm256_mul_ps(iq1,jq0);
+            qq10             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_add_ps(rinv10,_mm256_mul_ps(krf,rsq10)),crf));
@@ -301,9 +326,19 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            /*Recompute scaling for iq2*/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq20             = _mm256_mul_ps(iq2,jq0);
+            qq20             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_add_ps(rinv20,_mm256_mul_ps(krf,rsq20)),crf));
@@ -422,9 +457,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq00             = _mm256_mul_ps(iq0,jq0);
+            qq00             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_add_ps(rinv00,_mm256_mul_ps(krf,rsq00)),crf));
@@ -455,9 +499,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq10             = _mm256_mul_ps(iq1,jq0);
+            qq10             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_add_ps(rinv10,_mm256_mul_ps(krf,rsq10)),crf));
@@ -488,9 +541,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_VF_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq20             = _mm256_mul_ps(iq2,jq0);
+            qq20             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_add_ps(rinv20,_mm256_mul_ps(krf,rsq20)),crf));
@@ -609,6 +671,9 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
     __m256           two     = _mm256_set1_ps(2.0);
     x                = xx[0];
     f                = ff[0];
+  //For non-bonded interactions
+     float            ij_scaling[8];
+  
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
@@ -743,9 +808,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq00             = _mm256_mul_ps(iq0,jq0);
+            qq00             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             felec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_mul_ps(rinv00,rinvsq00),krf2));
@@ -769,9 +843,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq10             = _mm256_mul_ps(iq1,jq0);
+            qq10             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             felec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_mul_ps(rinv10,rinvsq10),krf2));
@@ -795,9 +878,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq20             = _mm256_mul_ps(iq2,jq0);
+            qq20             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             felec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_mul_ps(rinv20,rinvsq20),krf2));
@@ -912,9 +1004,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq00             = _mm256_mul_ps(iq0,jq0);
+            qq00             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             felec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_mul_ps(rinv00,rinvsq00),krf2));
@@ -940,9 +1041,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq10             = _mm256_mul_ps(iq1,jq0);
+            qq10             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             felec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_mul_ps(rinv10,rinvsq10),krf2));
@@ -968,9 +1078,18 @@ nb_kernel_ElecRF_VdwNone_GeomW3P1_F_avx_256_single
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
+            ij_scaling[0]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrA+0]);
+            ij_scaling[1]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrB+0]);
+            ij_scaling[2]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrC+0]);
+            ij_scaling[3]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrD+0]);
+            ij_scaling[4]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrE+0]);
+            ij_scaling[5]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrF+0]);
+            ij_scaling[6]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrG+0]);
+            ij_scaling[7]=ElecRF_VdwNone_GeomW3P1_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[jnrH+0]);
+
 
             /* Compute parameters for interactions between i and j atoms */
-            qq20             = _mm256_mul_ps(iq2,jq0);
+            qq20             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
 
             /* REACTION-FIELD ELECTROSTATICS */
             felec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_mul_ps(rinv20,rinvsq20),krf2));

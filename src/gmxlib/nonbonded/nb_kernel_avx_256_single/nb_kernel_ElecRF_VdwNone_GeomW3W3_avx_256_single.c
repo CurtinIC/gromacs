@@ -56,6 +56,11 @@
  * Geometry:                   Water3-Water3
  * Calculate force/pot:        PotentialAndForce
  */
+
+float ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(t_scaling *table,int inr,int jnr){
+        return (inr>=jnr?table->lookup[inr][jnr]:table->lookup[jnr][inr]);
+    }
+
 void
 nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
                     (t_nblist * gmx_restrict                nlist,
@@ -115,6 +120,9 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
     x                = xx[0];
     f                = ff[0];
 
+   //For non-bonded interactions
+   float            ij_scaling[8];
+
     nri              = nlist->nri;
     iinr             = nlist->iinr;
     jindex           = nlist->jindex;
@@ -138,15 +146,109 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
     jq0              = _mm256_set1_ps(charge[inr+0]);
     jq1              = _mm256_set1_ps(charge[inr+1]);
     jq2              = _mm256_set1_ps(charge[inr+2]);
-    qq00             = _mm256_mul_ps(iq0,jq0);
-    qq01             = _mm256_mul_ps(iq0,jq1);
-    qq02             = _mm256_mul_ps(iq0,jq2);
-    qq10             = _mm256_mul_ps(iq1,jq0);
-    qq11             = _mm256_mul_ps(iq1,jq1);
-    qq12             = _mm256_mul_ps(iq1,jq2);
-    qq20             = _mm256_mul_ps(iq2,jq0);
-    qq21             = _mm256_mul_ps(iq2,jq1);
-    qq22             = _mm256_mul_ps(iq2,jq2);
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+
+    qq00             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+
+    qq01             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq1));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+
+    qq02             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq2));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+
+    qq10             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
+
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+
+    qq11             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq1));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+
+    qq12             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq2));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+
+    qq20             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+
+    qq21             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq1));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+
+    qq22             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq2));
+
+
+
 
     /* Avoid stupid compiler warnings */
     jnrA = jnrB = jnrC = jnrD = jnrE = jnrF = jnrG = jnrH = 0;
@@ -1040,6 +1142,9 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_F_avx_256_single
     __m256           two     = _mm256_set1_ps(2.0);
     x                = xx[0];
     f                = ff[0];
+   //For non-bonded interactions
+   float            ij_scaling[8];
+  
 
     nri              = nlist->nri;
     iinr             = nlist->iinr;
@@ -1064,15 +1169,108 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_F_avx_256_single
     jq0              = _mm256_set1_ps(charge[inr+0]);
     jq1              = _mm256_set1_ps(charge[inr+1]);
     jq2              = _mm256_set1_ps(charge[inr+2]);
-    qq00             = _mm256_mul_ps(iq0,jq0);
-    qq01             = _mm256_mul_ps(iq0,jq1);
-    qq02             = _mm256_mul_ps(iq0,jq2);
-    qq10             = _mm256_mul_ps(iq1,jq0);
-    qq11             = _mm256_mul_ps(iq1,jq1);
-    qq12             = _mm256_mul_ps(iq1,jq2);
-    qq20             = _mm256_mul_ps(iq2,jq0);
-    qq21             = _mm256_mul_ps(iq2,jq1);
-    qq22             = _mm256_mul_ps(iq2,jq2);
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+0]);
+
+    qq00             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+1]);
+
+    qq01             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq1));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+0],mdatoms->molid[inr+2]);
+
+    qq02             = _mm256_mul_ps(iq0,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq2));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+0]);
+
+    qq10             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
+
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+1]);
+
+    qq11             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq1));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+1],mdatoms->molid[inr+2]);
+
+    qq12             = _mm256_mul_ps(iq1,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq2));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+0]);
+
+    qq20             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq0));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+1]);
+
+    qq21             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq1));
+
+    ij_scaling[0]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[1]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[2]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[3]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[4]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[5]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[6]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+    ij_scaling[7]=ElecRF_VdwNone_GeomW3W3_avx_256_single_interaction_ij(mdatoms->table_q,mdatoms->molid[inr+2],mdatoms->molid[inr+2]);
+
+    qq22             = _mm256_mul_ps(iq2,_mm256_mul_ps(_mm256_loadu_ps(ij_scaling),jq2));
+
+
 
     /* Avoid stupid compiler warnings */
     jnrA = jnrB = jnrC = jnrD = jnrE = jnrF = jnrG = jnrH = 0;
