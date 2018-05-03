@@ -996,6 +996,7 @@ static char **read_topol(const char *infile, const char *outfile,
                         case d_molecules:
                         {
                             int      whichmol;
+			    int tmp;
                             gmx_bool bCouple;
 
                             push_mol(nmol, *molinfo, pline, &whichmol, &nrcopies, wi);
@@ -1019,7 +1020,7 @@ static char **read_topol(const char *infile, const char *outfile,
                                           *mi0->name);
                             }
 			    /* Assign molids to atoms */
-                            for(int tmp=0;tmp<mi0->atoms.nr;tmp++)
+                            for(tmp=0;tmp<mi0->atoms.nr;tmp++)
                             {
 
                                 mi0->atoms.atom[tmp].molid=nmolb-1; 

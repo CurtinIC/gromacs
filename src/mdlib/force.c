@@ -67,6 +67,40 @@
 #include "mpelogging.h"
 #include "gmx_omp_nthreads.h"
 
+
+void array_to_table(float *in,float **out,int j)
+{
+/* j = length of the diagonal*/
+    int I,J,cnt;
+    cnt=0;
+    for(J=0;J<j;J++)
+    {
+        for(I=0;I<=J;I++)
+        {
+            out[J][I]=in[cnt];
+            cnt++;
+        }
+    }
+
+}
+
+void table_to_array(float **in,float *out,int j)
+/*j = length of the main diagonal*/
+{
+    int I,J,cnt;
+    cnt=0;
+    for(J=0;J<j;J++)
+    {
+        for(I=0;I<=J;I++)
+        {
+            out[cnt]=in[J][I];
+            cnt++;
+        }
+    }
+
+}
+
+
 void ns(FILE              *fp,
         t_forcerec        *fr,
         rvec               x[],
@@ -85,7 +119,7 @@ void ns(FILE              *fp,
 {
     char   *ptr;
     int     nsearch;
-
+        
     GMX_MPE_LOG(ev_ns_start);
     if (!fr->ns.nblist_initialized)
     {
@@ -281,6 +315,49 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
             donb_flags |= GMX_NONBONDED_DO_LR;
         }
 
+    /* Shiv's addition - be careful while modifying this section of the code 
+	as the module is arterial to GROMACS as a whole. */
+    float **tableVdw,**tableQ;  /*all possible permutations of Vdw/Q interactions*/
+    float **originalVdw,**originalQ,**foreignVdw,**foreignQ; /*originalVdw,originalQ - place holder for storing 
+							    original pointer to tables vdw and q */
+    int cnt_reuse,total_elements=0;
+    snew(tableVdw,enerd->n_lambda);
+    snew(tableQ,enerd->n_lambda);
+    
+    snew(foreignVdw,md->table_vdw->nr);
+    snew(foreignQ,md->table_q->nr);
+    for(cnt_reuse=0;cnt_reuse<md->table_vdw->nr;cnt_reuse++)
+    {
+        snew(foreignVdw[cnt_reuse],cnt_reuse+1);
+        snew(foreignQ[cnt_reuse],cnt_reuse+1);
+    }
+    
+
+    total_elements=md->table_vdw->nr;
+    total_elements*=(total_elements-1);
+    for(cnt_reuse=0;cnt_reuse<enerd->n_lambda;cnt_reuse++)
+    {
+        snew(tableVdw[cnt_reuse],total_elements);
+        snew(tableQ[cnt_reuse],total_elements);
+    }
+    /*Convert local table to array 
+      both for vdw as well as Q */
+    table_to_array(md->table_vdw->lookup,\
+                tableVdw[cr->ms->sim],md->table_vdw->nr); 
+    table_to_array(md->table_q->lookup,\
+                tableQ[cr->ms->sim],md->table_q->nr);         
+
+    /*Broadcast and sync tables over MPI*/
+    for(cnt_reuse=0;cnt_reuse<enerd->n_lambda;cnt_reuse++)
+    {
+        gmx_sum_sim(total_elements, tableQ[cnt_reuse], cr->ms);
+        gmx_sum_sim(total_elements, tableVdw[cnt_reuse], cr->ms);
+    }
+    
+    /* End of Shiv's addition*/
+
+
+
         wallcycle_sub_start(wcycle, ewcsNONBONDED);
         do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
                      &enerd->grpp, box_size, nrnb,
@@ -289,24 +366,41 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         /* If we do foreign lambda and we have soft-core interactions
          * we have to recalculate the (non-linear) energies contributions.
          */
-        if (fepvals->n_lambda > 0 && (flags & GMX_FORCE_DHDL) && fepvals->sc_alpha != 0)
+        //if (fepvals->n_lambda > 0 && (flags & GMX_FORCE_DHDL) && fepvals->sc_alpha != 0)
+        if(fepvals->n_lambda>0)
         {
+            originalVdw=md->table_vdw->lookup;
+            originalQ=md->table_q->lookup;
             for (i = 0; i < enerd->n_lambda; i++)
             {
+                /*Convert 1D array to 2D interaction table*/
+                array_to_table(tableVdw[i],foreignVdw,md->table_vdw->nr);
+                array_to_table(tableQ[i],foreignQ,md->table_q->nr);
+                md->table_vdw->lookup=foreignVdw;
+                md->table_q->lookup=foreignQ;
                 for (j = 0; j < efptNR; j++)
                 {
                     lam_i[j] = (i == 0 ? lambda[j] : fepvals->all_lambda[j][i-1]);
                 }
                 reset_foreign_enerdata(enerd);
-                do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
+                /*do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
                              &(enerd->foreign_grpp), box_size, nrnb,
                              lam_i, dvdl_dum, -1, -1,
-                             (donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);
+                             (donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);*/
+                do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
+                             &(enerd->foreign_grpp), box_size, nrnb,
+                              lam_i, dvdl_nb, -1, -1, donb_flags);             
                 sum_epot(&ir->opts, &(enerd->foreign_grpp), enerd->foreign_term);
                 enerd->enerpart_lambda[i] += enerd->foreign_term[F_EPOT];
             }
+            
+            md->table_vdw->lookup=originalVdw;  
+            md->table_q->lookup=originalQ;
         }
         wallcycle_sub_stop(wcycle, ewcsNONBONDED);
+        enerd->dvdl_lin[0]=*(enerd->grpp.ener[0]);
+        enerd->dvdl_lin[1]=*(enerd->grpp.ener[1]);
+
         where();
     }
 
@@ -726,7 +820,9 @@ void init_enerdata(int ngener, int n_lambda, gmx_enerdata_t *enerd)
 
     if (n_lambda)
     {
+        /*Shiv's addition- changing n_lambda in equal number to n_replicas*/
         enerd->n_lambda = 1 + n_lambda;
+        enerd->n_lambda = enerd->grpp.nener; /*Shiv changed this*/
         snew(enerd->enerpart_lambda, enerd->n_lambda);
     }
     else

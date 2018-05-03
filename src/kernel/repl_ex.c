@@ -264,13 +264,15 @@ gmx_repl_ex_t init_replica_exchange(FILE *fplog,
         {
             for (j = i+1; j < re->nrepl; j++)
             {
-                if (re->q[re->type][re->ind[j]] < re->q[re->type][re->ind[i]])
-                {
+		/*Shiv - lambda is totally ignore. In future, we may want to check vdw/q tables 
+			 accross nodes*/
+               /* if (re->q[re->type][re->ind[j]] < re->q[re->type][re->ind[i]])
+                {*/
                     /* Unordered replicas are supposed to work, but there
                      * is still an issues somewhere.
                      * Note that at this point still re->ind[i]=i.
                      */
-                    gmx_fatal(FARGS, "Replicas with indices %d < %d have %ss %g > %g, please order your replicas on increasing %s",
+                  /*  gmx_fatal(FARGS, "Replicas with indices %d < %d have %ss %g > %g, please order your replicas on increasing %s",
                               i, j,
                               erename[re->type],
                               re->q[re->type][i], re->q[re->type][j],
@@ -283,7 +285,7 @@ gmx_repl_ex_t init_replica_exchange(FILE *fplog,
                 else if (re->q[re->type][re->ind[j]] == re->q[re->type][re->ind[i]])
                 {
                     gmx_fatal(FARGS, "Two replicas have identical %ss", erename[re->type]);
-                }
+                }*/
             }
         }
     }
@@ -961,7 +963,8 @@ test_for_replica_exchange(FILE                 *fplog,
         }
         for (i = 0; i < re->nrepl; i++)
         {
-            re->de[i][re->repl] = (enerd->enerpart_lambda[(int)re->q[ereLAMBDA][i]+1]-enerd->enerpart_lambda[0]);
+            re->de[i][re->repl] =(enerd->enerpart_lambda[i]-enerd->enerpart_lambda[re->repl]);
+            /*(enerd->enerpart_lambda[(int)re->q[ereLAMBDA][i]+1]-enerd->enerpart_lambda[0]);*/
         }
     }
 
