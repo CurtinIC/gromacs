@@ -398,8 +398,8 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
             md->table_q->lookup=originalQ;
         }
         wallcycle_sub_stop(wcycle, ewcsNONBONDED);
-        enerd->dvdl_lin[0]=*(enerd->grpp.ener[0]);
-        enerd->dvdl_lin[1]=*(enerd->grpp.ener[1]);
+        /*enerd->dvdl_lin[0]=*(enerd->grpp.ener[0]);
+        enerd->dvdl_lin[1]=*(enerd->grpp.ener[1]);*/
 
         where();
     }
