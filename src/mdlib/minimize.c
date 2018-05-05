@@ -448,6 +448,7 @@ void init_em(FILE *fplog, const char *title,
     *outf = init_mdoutf(nfile, fnm, 0, cr, ir, NULL);
 
     snew(*enerd, 1);
+/*    enerd->n_mpi=cr->ms->nsim; Shiv's addition*/  
     init_enerdata(top_global->groups.grps[egcENER].nr, ir->fepvals->n_lambda,
                   *enerd);
 

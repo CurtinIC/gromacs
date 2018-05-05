@@ -253,6 +253,7 @@ double do_tpi(FILE *fplog, t_commrec *cr,
     update_mdatoms(mdatoms, inputrec->fepvals->init_lambda);
 
     snew(enerd, 1);
+    enerd->n_mpi=cr->ms->nsim; /*Shiv's addition*/
     init_enerdata(groups->grps[egcENER].nr, inputrec->fepvals->n_lambda, enerd);
     snew(f, top_global->natoms);
 

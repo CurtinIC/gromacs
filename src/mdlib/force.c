@@ -101,6 +101,18 @@ void table_to_array(float **in,float *out,int j)
 }
 
 
+void free_table(float **table,int rows)
+{
+    int i;
+    for(i=0;i<rows;i++)
+    {
+        sfree(table[i]);
+    }
+    sfree(table);
+
+}
+
+
 void ns(FILE              *fp,
         t_forcerec        *fr,
         rvec               x[],
@@ -321,11 +333,14 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     float **originalVdw,**originalQ,**foreignVdw,**foreignQ; /*originalVdw,originalQ - place holder for storing 
 							    original pointer to tables vdw and q */
     int cnt_reuse,total_elements=0;
-    snew(tableVdw,enerd->n_lambda);
-    snew(tableQ,enerd->n_lambda);
+    //srenew(enerd->enerpart_lambda, cr->ms->nsim); /* does this need to be freed?*/
+    enerd->n_mpi=cr->ms->nsim;
+    snew(tableVdw,cr->ms->nsim);
+    snew(tableQ,cr->ms->nsim);
     
     snew(foreignVdw,md->table_vdw->nr);
     snew(foreignQ,md->table_q->nr);
+    
     for(cnt_reuse=0;cnt_reuse<md->table_vdw->nr;cnt_reuse++)
     {
         snew(foreignVdw[cnt_reuse],cnt_reuse+1);
@@ -334,8 +349,8 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     
 
     total_elements=md->table_vdw->nr;
-    total_elements*=(total_elements-1);
-    for(cnt_reuse=0;cnt_reuse<enerd->n_lambda;cnt_reuse++)
+    total_elements=total_elements*(total_elements-1);
+    for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
     {
         snew(tableVdw[cnt_reuse],total_elements);
         snew(tableQ[cnt_reuse],total_elements);
@@ -348,7 +363,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
                 tableQ[cr->ms->sim],md->table_q->nr);         
 
     /*Broadcast and sync tables over MPI*/
-    for(cnt_reuse=0;cnt_reuse<enerd->n_lambda;cnt_reuse++)
+    for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
     {
         gmx_sum_sim(total_elements, tableQ[cnt_reuse], cr->ms);
         gmx_sum_sim(total_elements, tableVdw[cnt_reuse], cr->ms);
@@ -371,7 +386,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         {
             originalVdw=md->table_vdw->lookup;
             originalQ=md->table_q->lookup;
-            for (i = 0; i < enerd->n_lambda; i++)
+            for (i = 0; i < cr->ms->nsim; i++)
             {
                 /*Convert 1D array to 2D interaction table*/
                 array_to_table(tableVdw[i],foreignVdw,md->table_vdw->nr);
@@ -400,6 +415,11 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         wallcycle_sub_stop(wcycle, ewcsNONBONDED);
         /*enerd->dvdl_lin[0]=*(enerd->grpp.ener[0]);
         enerd->dvdl_lin[1]=*(enerd->grpp.ener[1]);*/
+        
+        free_table(tableVdw,cr->ms->nsim);
+        free_table(tableQ,cr->ms->nsim);
+        free_table(foreignVdw,md->table_vdw->nr);
+        free_table(foreignQ,md->table_vdw->nr);
 
         where();
     }
@@ -822,8 +842,18 @@ void init_enerdata(int ngener, int n_lambda, gmx_enerdata_t *enerd)
     {
         /*Shiv's addition- changing n_lambda in equal number to n_replicas*/
         enerd->n_lambda = 1 + n_lambda;
-        enerd->n_lambda = enerd->grpp.nener; /*Shiv changed this*/
-        snew(enerd->enerpart_lambda, enerd->n_lambda);
+        /*enerd->n_lambda = enerd->grpp.nener;*/
+       
+        /*Shiv changed this*/
+        
+        if(enerd->n_mpi>0)
+        {
+            snew(enerd->enerpart_lambda, enerd->n_lambda); 
+        }
+        else
+        {
+            snew(enerd->enerpart_lambda, enerd->n_lambda);
+        }
     }
     else
     {

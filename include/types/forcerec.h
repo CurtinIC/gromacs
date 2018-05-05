@@ -152,6 +152,7 @@ typedef struct {
     double            dvdl_lin[efptNR];    /* Contributions to dvdl with linear lam-dependence */
     double            dvdl_nonlin[efptNR]; /* Idem, but non-linear dependence                  */
     int               n_lambda;
+    int               n_mpi; /* number of mpi ranks*/
     int               fep_state;           /*current fep state -- just for printing */
     double           *enerpart_lambda;     /* Partial energy for lambda and flambda[] */
     real              foreign_term[F_NRE]; /* alternate array for storing foreign lambda energies */
