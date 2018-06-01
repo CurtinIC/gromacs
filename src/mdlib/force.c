@@ -853,7 +853,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
 	}
     }
 
-    if(MASTER(cr)){ 
+    if(MASTER(cr)&&debug){ 
 		for(i=0;i<cr->ms->nsim;i++)
 		{
 		fprintf(stderr,"E%d%d %f\n",cr->ms->sim,i,enerd->enerpart_lambda[i]);
