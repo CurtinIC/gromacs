@@ -92,7 +92,7 @@ static gmx_bool do_xdr(t_fileio *fio, void *item, int nitem, int eio,
 
     gmx_fio_check_nitem(fio, eio, nitem, srcfile, line);
     switch (eio)
-    {
+    {      
         case eioREAL:
             if (fio->bDouble)
             {
@@ -119,17 +119,18 @@ static gmx_bool do_xdr(t_fileio *fio, void *item, int nitem, int eio,
                 }
             }
             break;
-        case eioFLOAT:
-            if (item && !fio->bRead)
-            {
-                f = *((float *) item);
-            }
-            res = xdr_float(fio->xdr, &f);
-            if (item)
-            {
-                *((float *) item) = f;
-            }
-            break;
+            
+       case eioFLOAT:
+                 if (item && !fio->bRead)
+                 {
+                     f = *((float *) item);
+                 }
+                 res = xdr_float(fio->xdr, &f);
+                 if (item)
+                 {
+                     *((float *) item) = f;
+                 }
+                 break;        
         case eioDOUBLE:
             if (item && !fio->bRead)
             {
@@ -317,6 +318,7 @@ static gmx_bool do_xdr(t_fileio *fio, void *item, int nitem, int eio,
         default:
             gmx_fio_fe(fio, eio, desc, srcfile, line);
     }
+    
     if ((res == 0) && (fio->bDebug))
     {
         fprintf(stderr, "Error in xdr I/O %s %s to file %s (source %s, line %d)\n",

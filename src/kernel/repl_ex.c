@@ -954,6 +954,13 @@ test_for_replica_exchange(FILE                 *fplog,
         /* lambda differences. */
         /* de[i][j] is the energy of the jth simulation in the ith Hamiltonian
            minus the energy of the jth simulation in the jth Hamiltonian */
+
+        /*Shiv - each replica scans over i. A system j is unique in terms of the 
+	  atomic coordinates at a given time.
+	  As the replica j which is fixed scans over each hamiltonian - i - by changing
+	  vdw and charge params, the computation of energy differences between the 
+          hamiltonian becomes easy. The rest of the address space is left blank intentionally
+	  to be filled by gmx_sum_sim a step later.*/
         for (i = 0; i < re->nrepl; i++)
         {
             for (j = 0; j < re->nrepl; j++)

@@ -433,7 +433,6 @@ void do_nonbonded(t_commrec *cr, t_forcerec *fr,
                         /* Force only, no potential */
                         kernelptr = (nb_kernel_t *)nlist[i].kernelptr_f;
                     }
-
                     if (nlist[i].type != GMX_NBLIST_INTERACTION_FREE_ENERGY && (flags & GMX_NONBONDED_DO_FOREIGNLAMBDA))
                     {
                         /* We don't need the non-perturbed interactions */

@@ -228,6 +228,10 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     real        dvdl_dum[efptNR], dvdl, dvdl_nb[efptNR], lam_i[efptNR];
     real        dvdlsum;
 
+    /*Shiv's additions*/
+    double      de_epot; /*Stores potential energy difference 
+			 between non-bonded-lr and total potential energy*/
+
 #ifdef GMX_MPI
     double  t0 = 0.0, t1, t2, t3; /* time measurement for coarse load balancing */
 #endif
@@ -326,53 +330,70 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         {
             donb_flags |= GMX_NONBONDED_DO_LR;
         }
-
     /* Shiv's addition - be careful while modifying this section of the code 
 	as the module is arterial to GROMACS as a whole. */
-    float **tableVdw,**tableQ;  /*all possible permutations of Vdw/Q interactions*/
-    float **originalVdw,**originalQ,**foreignVdw,**foreignQ; /*originalVdw,originalQ - place holder for storing 
-							    original pointer to tables vdw and q */
-    int cnt_reuse,total_elements=0;
-    //srenew(enerd->enerpart_lambda, cr->ms->nsim); /* does this need to be freed?*/
-    enerd->n_mpi=cr->ms->nsim;
-    snew(tableVdw,cr->ms->nsim);
-    snew(tableQ,cr->ms->nsim);
+        
+
+        float **tableVdw,**tableQ;  /*all possible permutations of Vdw/Q interactions*/
+        float **originalVdw,**originalQ,**foreignVdw,**foreignQ; /*originalVdw,originalQ - place holder for storing 
+                                                                original pointer to tables vdw and q */
+        int cnt_reuse,total_elements=0;
+     if(ir->fepvals->n_lambda) 
+     {
+        enerd->n_mpi=cr->ms->nsim;
+        snew(tableVdw,cr->ms->nsim);
+        snew(tableQ,cr->ms->nsim);
+        
+        snew(foreignVdw,md->table_vdw->nr);
+        snew(foreignQ,md->table_q->nr);
+        
+        for(cnt_reuse=0;cnt_reuse<md->table_vdw->nr;cnt_reuse++)
+        {
+            snew(foreignVdw[cnt_reuse],cnt_reuse+1);
+            snew(foreignQ[cnt_reuse],cnt_reuse+1);
+        }
+        
     
-    snew(foreignVdw,md->table_vdw->nr);
-    snew(foreignQ,md->table_q->nr);
+        total_elements=md->table_vdw->nr;
+        total_elements=total_elements*(total_elements-1);
+        for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
+        {
+            snew(tableVdw[cnt_reuse],total_elements);
+            snew(tableQ[cnt_reuse],total_elements);
+        }
+        //Convert local table to array both for vdw as well as Q 
+        table_to_array(md->table_vdw->lookup,\
+                    tableVdw[cr->ms->sim],md->table_vdw->nr); 
+        table_to_array(md->table_q->lookup,\
+                    tableQ[cr->ms->sim],md->table_q->nr);         
     
-    for(cnt_reuse=0;cnt_reuse<md->table_vdw->nr;cnt_reuse++)
-    {
-        snew(foreignVdw[cnt_reuse],cnt_reuse+1);
-        snew(foreignQ[cnt_reuse],cnt_reuse+1);
+        //Broadcast and sync tables over MPI
+        if (MASTER(cr))
+        {
+            for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
+            {
+                gmx_sum_sim(total_elements, tableQ[cnt_reuse], cr->ms);
+                gmx_sum_sim(total_elements, tableVdw[cnt_reuse], cr->ms);
+            }
+        }
+       
+        if PAR(cr)
+        {
+	int cnt_reuse1;
+	for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
+	{
+		for(cnt_reuse1=0;cnt_reuse1<total_elements;cnt_reuse1++)
+		{
+			gmx_bcast(sizeof(float), &tableQ[cnt_reuse][cnt_reuse1], cr);
+			gmx_bcast(sizeof(float), &tableVdw[cnt_reuse][cnt_reuse1], cr);
+
+		}
+	}
+        
+        }
     }
+    // End of Shiv's addition
     
-
-    total_elements=md->table_vdw->nr;
-    total_elements=total_elements*(total_elements-1);
-    for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
-    {
-        snew(tableVdw[cnt_reuse],total_elements);
-        snew(tableQ[cnt_reuse],total_elements);
-    }
-    /*Convert local table to array 
-      both for vdw as well as Q */
-    table_to_array(md->table_vdw->lookup,\
-                tableVdw[cr->ms->sim],md->table_vdw->nr); 
-    table_to_array(md->table_q->lookup,\
-                tableQ[cr->ms->sim],md->table_q->nr);         
-
-    /*Broadcast and sync tables over MPI*/
-    for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
-    {
-        gmx_sum_sim(total_elements, tableQ[cnt_reuse], cr->ms);
-        gmx_sum_sim(total_elements, tableVdw[cnt_reuse], cr->ms);
-    }
-    
-    /* End of Shiv's addition*/
-
-
-
         wallcycle_sub_start(wcycle, ewcsNONBONDED);
         do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
                      &enerd->grpp, box_size, nrnb,
@@ -386,40 +407,43 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         {
             originalVdw=md->table_vdw->lookup;
             originalQ=md->table_q->lookup;
-            for (i = 0; i < cr->ms->nsim; i++)
-            {
-                /*Convert 1D array to 2D interaction table*/
-                array_to_table(tableVdw[i],foreignVdw,md->table_vdw->nr);
-                array_to_table(tableQ[i],foreignQ,md->table_q->nr);
-                md->table_vdw->lookup=foreignVdw;
-                md->table_q->lookup=foreignQ;
-                for (j = 0; j < efptNR; j++)
-                {
-                    lam_i[j] = (i == 0 ? lambda[j] : fepvals->all_lambda[j][i-1]);
+                for (i = 0; i < cr->ms->nsim; i++)
+                {   
+                //Convert 1D array to 2D interaction table
+                    array_to_table(tableVdw[i],foreignVdw,md->table_vdw->nr);
+                    array_to_table(tableQ[i],foreignQ,md->table_q->nr);
+                    md->table_vdw->lookup=foreignVdw;
+                    md->table_q->lookup=foreignQ;
+                    for (j = 0; j < efptNR; j++)
+                    {
+                        lam_i[j] =0; // (i == 0 ? lambda[j] : fepvals->all_lambda[j][i-1]);
+                    }
+                    reset_foreign_enerdata(enerd);
+                    do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
+                             &(enerd->foreign_grpp), box_size, nrnb,
+                              lambda, dvdl_nb, -1, -1, 
+			     //(donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);
+		 	   //GMX_NONBONDED_DO_FORCE); //POTENTIAL);             
+				donb_flags);
+			   //GMX_NONBONDED_DO_FOREIGNLAMBDA);
+                    sum_epot(&ir->opts, &(enerd->foreign_grpp), enerd->foreign_term);
+                    enerd->enerpart_lambda[i] = enerd->foreign_term[F_EPOT];
+
                 }
-                reset_foreign_enerdata(enerd);
-                /*do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
-                             &(enerd->foreign_grpp), box_size, nrnb,
-                             lam_i, dvdl_dum, -1, -1,
-                             (donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);*/
-                do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
-                             &(enerd->foreign_grpp), box_size, nrnb,
-                              lam_i, dvdl_nb, -1, -1, donb_flags);             
-                sum_epot(&ir->opts, &(enerd->foreign_grpp), enerd->foreign_term);
-                enerd->enerpart_lambda[i] += enerd->foreign_term[F_EPOT];
-            }
-            
+	
             md->table_vdw->lookup=originalVdw;  
             md->table_q->lookup=originalQ;
         }
         wallcycle_sub_stop(wcycle, ewcsNONBONDED);
-        /*enerd->dvdl_lin[0]=*(enerd->grpp.ener[0]);
-        enerd->dvdl_lin[1]=*(enerd->grpp.ener[1]);*/
-        
-        free_table(tableVdw,cr->ms->nsim);
-        free_table(tableQ,cr->ms->nsim);
-        free_table(foreignVdw,md->table_vdw->nr);
-        free_table(foreignQ,md->table_vdw->nr);
+        if(ir->fepvals->n_lambda)
+        {
+            free_table(tableVdw,cr->ms->nsim);
+            free_table(tableQ,cr->ms->nsim);
+            free_table(foreignVdw,md->table_vdw->nr);
+            free_table(foreignQ,md->table_vdw->nr);
+            sum_epot(&ir->opts, &(enerd->grpp), enerd->term);
+            de_epot=enerd->term[F_EPOT]; //temp stores pot
+        }
 
         where();
     }
@@ -559,6 +583,8 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     }
 
     where();
+
+
 
     *cycles_pme = 0;
     if (EEL_FULL(fr->eeltype))
@@ -775,6 +801,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     where();
     debug_gmx();
 
+
     if (debug)
     {
         print_nrnb(debug, nrnb);
@@ -803,8 +830,37 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     {
         pr_rvecs(debug, 0, "fshift after bondeds", fr->fshift, SHIFTS);
     }
+    if(fepvals->n_lambda>0) 
+    {
+     //Shiv's additions
+    sum_epot(&ir->opts, &(enerd->grpp), enerd->term);
+    de_epot=enerd->term[F_EPOT]-de_epot;
 
+          for (i = 0; i < cr->ms->nsim; i++)
+          {
+		enerd->enerpart_lambda[i] +=de_epot;
+	  }
+	
+    }
+
+    double tot_en=0;
+    for (i = 0; i < cr->ms->nsim; i++)
+    {
+	MPI_Reduce(&enerd->enerpart_lambda[i],&tot_en, 1, MPI_DOUBLE,MPI_SUM, MASTERRANK(cr), cr->mpi_comm_mygroup);
+	if(MASTER(cr))
+	{
+	  enerd->enerpart_lambda[i]=tot_en;
+	}
+    }
+
+    if(MASTER(cr)){ 
+		for(i=0;i<cr->ms->nsim;i++)
+		{
+		fprintf(stderr,"E%d%d %f\n",cr->ms->sim,i,enerd->enerpart_lambda[i]);
+		}
+    }
     GMX_MPE_LOG(ev_force_finish);
+
 
 }
 

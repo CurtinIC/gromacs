@@ -2367,31 +2367,29 @@ static void do_groups(t_fileio *fio, gmx_groups_t *groups,
 /* Stores long range interactions in the topology file*/
 static void do_longrange(t_fileio *fio,t_scaling *lr_vdw,t_scaling *lr_q,gmx_bool bRead)
 {
-	int i,j;
+		int i,j;
         gmx_fio_do_int(fio,lr_vdw->nr);
         gmx_fio_do_int(fio,lr_q->nr);
         //Allocate buffer in case of mdrun
         if(bRead)
         {
-                lr_vdw->lookup=malloc((lr_vdw->nr)*sizeof(float));
-                lr_q->lookup=malloc((lr_q->nr)*sizeof(float));
+
+		snew(lr_vdw->lookup,lr_vdw->nr);
+		snew(lr_q->lookup,lr_q->nr);
                 for(i=0;i<=lr_vdw->nr;i++)
                 {
-                        lr_vdw->lookup[i]=malloc((i+1)*sizeof(float));
-                        lr_q->lookup[i]=malloc((i+1)*sizeof(float));
+			snew(lr_vdw->lookup[i],i+1);
+			snew(lr_q->lookup[i],i+1);
                 }
         }
         for(i=0;i<lr_vdw->nr;i++) //ignore writing 0-0? what about intra-molecular scaling
         {
                 for(j=0;j<=i;j++) /* < if the diagonal is ignored! */
                 {
-
                 gmx_fio_do_float(fio,lr_vdw->lookup[i][j]);
                 gmx_fio_do_float(fio,lr_q->lookup[i][j]);
-
                 }
         }
-
 }
 
 
