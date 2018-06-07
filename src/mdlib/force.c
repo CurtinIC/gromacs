@@ -338,7 +338,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         float **originalVdw,**originalQ,**foreignVdw,**foreignQ; /*originalVdw,originalQ - place holder for storing 
                                                                 original pointer to tables vdw and q */
         int cnt_reuse,total_elements=0;
-     if(ir->fepvals->n_lambda) 
+     if(ir->fepvals->n_lambda&&do_per_step(enerd->steps, enerd->lambda_steps)) 
      {
         enerd->n_mpi=cr->ms->nsim;
         snew(tableVdw,cr->ms->nsim);
@@ -368,7 +368,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
                     tableQ[cr->ms->sim],md->table_q->nr);         
     
         //Broadcast and sync tables over MPI
-        if (MASTER(cr))
+        if (MASTER(cr)&&do_per_step(enerd->steps, enerd->lambda_steps))
         {
             for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
             {
@@ -377,7 +377,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
             }
         }
        
-        if PAR(cr)
+        if (PAR(cr)&&do_per_step(enerd->steps, enerd->lambda_steps))
         {
 	int cnt_reuse1;
 	for(cnt_reuse=0;cnt_reuse<cr->ms->nsim;cnt_reuse++)
@@ -403,7 +403,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
          * we have to recalculate the (non-linear) energies contributions.
          */
         //if (fepvals->n_lambda > 0 && (flags & GMX_FORCE_DHDL) && fepvals->sc_alpha != 0)
-        if(fepvals->n_lambda>0)
+        if(fepvals->n_lambda>0&&do_per_step(enerd->steps, enerd->lambda_steps))
         {
             originalVdw=md->table_vdw->lookup;
             originalQ=md->table_q->lookup;
@@ -435,7 +435,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
             md->table_q->lookup=originalQ;
         }
         wallcycle_sub_stop(wcycle, ewcsNONBONDED);
-        if(ir->fepvals->n_lambda)
+        if(ir->fepvals->n_lambda&&do_per_step(enerd->steps, enerd->lambda_steps))
         {
             free_table(tableVdw,cr->ms->nsim);
             free_table(tableQ,cr->ms->nsim);
@@ -830,7 +830,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     {
         pr_rvecs(debug, 0, "fshift after bondeds", fr->fshift, SHIFTS);
     }
-    if(fepvals->n_lambda>0) 
+    if(fepvals->n_lambda>0&&do_per_step(enerd->steps, enerd->lambda_steps)) 
     {
      //Shiv's additions
     sum_epot(&ir->opts, &(enerd->grpp), enerd->term);
@@ -843,21 +843,27 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
 	
     }
 
-    double tot_en=0;
-    for (i = 0; i < cr->ms->nsim; i++)
-    {
-	MPI_Reduce(&enerd->enerpart_lambda[i],&tot_en, 1, MPI_DOUBLE,MPI_SUM, MASTERRANK(cr), cr->mpi_comm_mygroup);
-	if(MASTER(cr))
-	{
-	  enerd->enerpart_lambda[i]=tot_en;
-	}
-    }
 
-    if(MASTER(cr)&&debug){ 
-		for(i=0;i<cr->ms->nsim;i++)
+    if(ir->fepvals->n_lambda>0&&do_per_step(enerd->steps, enerd->lambda_steps))
+    {
+
+	    double tot_en=0;
+
+	    for (i = 0; i < cr->ms->nsim; i++)
+	    {
+		MPI_Reduce(&enerd->enerpart_lambda[i],&tot_en, 1, MPI_DOUBLE,MPI_SUM, MASTERRANK(cr), cr->mpi_comm_mygroup);
+		if(MASTER(cr))
 		{
-		fprintf(stderr,"E%d%d %f\n",cr->ms->sim,i,enerd->enerpart_lambda[i]);
+		  enerd->enerpart_lambda[i]=tot_en;
 		}
+	    }
+
+	    if(MASTER(cr)&&debug&&do_per_step(enerd->steps, enerd->lambda_steps)){ 
+			for(i=0;i<cr->ms->nsim;i++)
+			{
+			fprintf(stderr,"E%d%d %f\n",cr->ms->sim,i,enerd->enerpart_lambda[i]);
+			}
+	    }
     }
     GMX_MPE_LOG(ev_force_finish);
 
