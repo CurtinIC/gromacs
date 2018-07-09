@@ -424,7 +424,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
                               lambda, dvdl_nb, -1, -1, 
 			     //(donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);
 		 	   //GMX_NONBONDED_DO_FORCE); //POTENTIAL);             
-				donb_flags);
+				GMX_NONBONDED_DO_FOREIGNLAMBDA); //donb_flags);
 			   //GMX_NONBONDED_DO_FOREIGNLAMBDA);
                     sum_epot(&ir->opts, &(enerd->foreign_grpp), enerd->foreign_term);
                     enerd->enerpart_lambda[i] = enerd->foreign_term[F_EPOT];
