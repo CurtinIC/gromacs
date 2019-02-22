@@ -67,6 +67,7 @@ typedef struct {
     int                   *molid; /* Dump molecular id here */
     t_scaling              *table_vdw; 
     t_scaling              *table_q;
+    int 		  calc_force;
 
     unsigned short        *ptype;
     unsigned short        *cTC, *cENER, *cACC, *cFREEZE, *cVCM;

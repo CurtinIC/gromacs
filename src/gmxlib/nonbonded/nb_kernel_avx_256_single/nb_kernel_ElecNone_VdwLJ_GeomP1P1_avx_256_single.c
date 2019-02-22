@@ -246,12 +246,17 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_avx_256_single
             vvdw6            = _mm256_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm256_mul_ps(c12_00,_mm256_mul_ps(rinvsix,rinvsix));
             vvdw             = _mm256_mul_ps(_mm256_loadu_ps(ij_scaling),_mm256_sub_ps( _mm256_mul_ps(vvdw12,one_twelfth) , _mm256_mul_ps(vvdw6,one_sixth) ));
+if(mdatoms->calc_force!=32)
+{
             fvdw             = _mm256_mul_ps(_mm256_loadu_ps(ij_scaling),_mm256_mul_ps(_mm256_sub_ps(vvdw12,vvdw6),rinvsq00));
-
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             vvdwsum          = _mm256_add_ps(vvdwsum,vvdw);
 
+if(mdatoms->calc_force!=32)
+{
             fscal            = fvdw;
+
 
             /* Calculate temporary vectorial force */
             tx               = _mm256_mul_ps(fscal,dx00);
@@ -272,7 +277,7 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_avx_256_single
             fjptrG             = f+j_coord_offsetG;
             fjptrH             = f+j_coord_offsetH;
             gmx_mm256_decrement_1rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,tx,ty,tz);
-
+}
             /* Inner loop uses 32 flops */
         }
 
@@ -368,12 +373,15 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_avx_256_single
             vvdw6            = _mm256_mul_ps(c6_00,rinvsix);
             vvdw12           = _mm256_mul_ps(c12_00,_mm256_mul_ps(rinvsix,rinvsix));
             vvdw             = _mm256_mul_ps(_mm256_loadu_ps(ij_scaling),_mm256_sub_ps( _mm256_mul_ps(vvdw12,one_twelfth) , _mm256_mul_ps(vvdw6,one_sixth) ));
+if(mdatoms->calc_force!=32)
+{
             fvdw             = _mm256_mul_ps(_mm256_loadu_ps(ij_scaling),_mm256_mul_ps(_mm256_sub_ps(vvdw12,vvdw6),rinvsq00));
-
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             vvdw             = _mm256_andnot_ps(dummy_mask,vvdw);
             vvdwsum          = _mm256_add_ps(vvdwsum,vvdw);
-
+if(mdatoms->calc_force!=32)
+{
             fscal            = fvdw;
 
             fscal            = _mm256_andnot_ps(dummy_mask,fscal);
@@ -397,15 +405,17 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_VF_avx_256_single
             fjptrG             = (jnrlistG>=0) ? f+j_coord_offsetG : scratch;
             fjptrH             = (jnrlistH>=0) ? f+j_coord_offsetH : scratch;
             gmx_mm256_decrement_1rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,tx,ty,tz);
-
+}
             /* Inner loop uses 32 flops */
         }
 
         /* End of innermost loop */
+if(mdatoms->calc_force!=32)
+{
 
         gmx_mm256_update_iforce_1atom_swizzle_ps(fix0,fiy0,fiz0,
                                                  f+i_coord_offset,fshift+i_shift_offset);
-
+}
         ggid                        = gid[iidx];
         /* Update potential energies */
         gmx_mm256_update_1pot_ps(vvdwsum,kernel_data->energygrp_vdw+ggid);
@@ -609,11 +619,13 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_F_avx_256_single
             ij_scaling[7]=ElecNone_VdwLJ_GeomP1P1_avx_256_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr+0],mdatoms->molid[jnrH+0]);
 
             rinvsix          = _mm256_mul_ps(_mm256_mul_ps(rinvsq00,rinvsq00),rinvsq00);
+
+if(mdatoms->calc_force!=32)
+{
+
             fvdw             = _mm256_mul_ps(_mm256_loadu_ps(ij_scaling),_mm256_mul_ps(_mm256_sub_ps(_mm256_mul_ps(c12_00,rinvsix),c6_00),_mm256_mul_ps(rinvsix,rinvsq00)));
 
             fscal            = fvdw;
-
-            /* Calculate temporary vectorial force */
             tx               = _mm256_mul_ps(fscal,dx00);
             ty               = _mm256_mul_ps(fscal,dy00);
             tz               = _mm256_mul_ps(fscal,dz00);
@@ -632,7 +644,7 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_F_avx_256_single
             fjptrG             = f+j_coord_offsetG;
             fjptrH             = f+j_coord_offsetH;
             gmx_mm256_decrement_1rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,tx,ty,tz);
-
+}
             /* Inner loop uses 27 flops */
         }
 
@@ -725,6 +737,10 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_F_avx_256_single
             ij_scaling[7]=ElecNone_VdwLJ_GeomP1P1_avx_256_single_interaction_ij(mdatoms->table_vdw,mdatoms->molid[inr+0],mdatoms->molid[jnrH+0]);
 
             rinvsix          = _mm256_mul_ps(_mm256_mul_ps(rinvsq00,rinvsq00),rinvsq00);
+
+if(mdatoms->calc_force!=32)
+{
+
             fvdw             = _mm256_mul_ps(_mm256_loadu_ps(ij_scaling),_mm256_mul_ps(_mm256_sub_ps(_mm256_mul_ps(c12_00,rinvsix),c6_00),_mm256_mul_ps(rinvsix,rinvsq00)));
 
             fscal            = fvdw;
@@ -750,15 +766,18 @@ nb_kernel_ElecNone_VdwLJ_GeomP1P1_F_avx_256_single
             fjptrG             = (jnrlistG>=0) ? f+j_coord_offsetG : scratch;
             fjptrH             = (jnrlistH>=0) ? f+j_coord_offsetH : scratch;
             gmx_mm256_decrement_1rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,tx,ty,tz);
-
+}
             /* Inner loop uses 27 flops */
         }
 
         /* End of innermost loop */
+if(mdatoms->calc_force!=32)
+{
 
         gmx_mm256_update_iforce_1atom_swizzle_ps(fix0,fiy0,fiz0,
                                                  f+i_coord_offset,fshift+i_shift_offset);
 
+}
         /* Increment number of inner iterations */
         inneriter                  += j_index_end - j_index_start;
 

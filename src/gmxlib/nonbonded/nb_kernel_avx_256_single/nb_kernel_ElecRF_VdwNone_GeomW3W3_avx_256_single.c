@@ -405,10 +405,13 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_add_ps(rinv00,_mm256_mul_ps(krf,rsq00)),crf));
+if(mdatoms->calc_force!=32){
             felec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_mul_ps(rinv00,rinvsq00),krf2));
 
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -425,17 +428,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx0             = _mm256_add_ps(fjx0,tx);
             fjy0             = _mm256_add_ps(fjy0,ty);
             fjz0             = _mm256_add_ps(fjz0,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq01,_mm256_sub_ps(_mm256_add_ps(rinv01,_mm256_mul_ps(krf,rsq01)),crf));
-            felec            = _mm256_mul_ps(qq01,_mm256_sub_ps(_mm256_mul_ps(rinv01,rinvsq01),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq01,_mm256_sub_ps(_mm256_mul_ps(rinv01,rinvsq01),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -452,17 +459,20 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx1             = _mm256_add_ps(fjx1,tx);
             fjy1             = _mm256_add_ps(fjy1,ty);
             fjz1             = _mm256_add_ps(fjz1,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq02,_mm256_sub_ps(_mm256_add_ps(rinv02,_mm256_mul_ps(krf,rsq02)),crf));
-            felec            = _mm256_mul_ps(qq02,_mm256_sub_ps(_mm256_mul_ps(rinv02,rinvsq02),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq02,_mm256_sub_ps(_mm256_mul_ps(rinv02,rinvsq02),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -479,18 +489,20 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx2             = _mm256_add_ps(fjx2,tx);
             fjy2             = _mm256_add_ps(fjy2,ty);
             fjz2             = _mm256_add_ps(fjz2,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_add_ps(rinv10,_mm256_mul_ps(krf,rsq10)),crf));
+if(mdatoms->calc_force!=32){
             felec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_mul_ps(rinv10,rinvsq10),krf2));
-
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
 
+if(mdatoms->calc_force!=32){
             fscal            = felec;
 
             /* Calculate temporary vectorial force */
@@ -506,18 +518,19 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx0             = _mm256_add_ps(fjx0,tx);
             fjy0             = _mm256_add_ps(fjy0,ty);
             fjz0             = _mm256_add_ps(fjz0,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq11,_mm256_sub_ps(_mm256_add_ps(rinv11,_mm256_mul_ps(krf,rsq11)),crf));
+if(mdatoms->calc_force!=32){
             felec            = _mm256_mul_ps(qq11,_mm256_sub_ps(_mm256_mul_ps(rinv11,rinvsq11),krf2));
-
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
-
+if(mdatoms->calc_force!=32){
             fscal            = felec;
 
             /* Calculate temporary vectorial force */
@@ -533,17 +546,20 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx1             = _mm256_add_ps(fjx1,tx);
             fjy1             = _mm256_add_ps(fjy1,ty);
             fjz1             = _mm256_add_ps(fjz1,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq12,_mm256_sub_ps(_mm256_add_ps(rinv12,_mm256_mul_ps(krf,rsq12)),crf));
+if(mdatoms->calc_force!=32){
             felec            = _mm256_mul_ps(qq12,_mm256_sub_ps(_mm256_mul_ps(rinv12,rinvsq12),krf2));
+}
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -560,17 +576,20 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx2             = _mm256_add_ps(fjx2,tx);
             fjy2             = _mm256_add_ps(fjy2,ty);
             fjz2             = _mm256_add_ps(fjz2,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_add_ps(rinv20,_mm256_mul_ps(krf,rsq20)),crf));
-            felec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_mul_ps(rinv20,rinvsq20),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_mul_ps(rinv20,rinvsq20),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -587,17 +606,20 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx0             = _mm256_add_ps(fjx0,tx);
             fjy0             = _mm256_add_ps(fjy0,ty);
             fjz0             = _mm256_add_ps(fjz0,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq21,_mm256_sub_ps(_mm256_add_ps(rinv21,_mm256_mul_ps(krf,rsq21)),crf));
-            felec            = _mm256_mul_ps(qq21,_mm256_sub_ps(_mm256_mul_ps(rinv21,rinvsq21),krf2));
-
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq21,_mm256_sub_ps(_mm256_mul_ps(rinv21,rinvsq21),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -614,17 +636,20 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx1             = _mm256_add_ps(fjx1,tx);
             fjy1             = _mm256_add_ps(fjy1,ty);
             fjz1             = _mm256_add_ps(fjz1,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq22,_mm256_sub_ps(_mm256_add_ps(rinv22,_mm256_mul_ps(krf,rsq22)),crf));
-            felec            = _mm256_mul_ps(qq22,_mm256_sub_ps(_mm256_mul_ps(rinv22,rinvsq22),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq22,_mm256_sub_ps(_mm256_mul_ps(rinv22,rinvsq22),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -653,7 +678,7 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
 
             gmx_mm256_decrement_3rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,
                                                       fjx0,fjy0,fjz0,fjx1,fjy1,fjz1,fjx2,fjy2,fjz2);
-
+}
             /* Inner loop uses 288 flops */
         }
 
@@ -776,11 +801,14 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_add_ps(rinv00,_mm256_mul_ps(krf,rsq00)),crf));
-            felec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_mul_ps(rinv00,rinvsq00),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_mul_ps(rinv00,rinvsq00),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -799,18 +827,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx0             = _mm256_add_ps(fjx0,tx);
             fjy0             = _mm256_add_ps(fjy0,ty);
             fjz0             = _mm256_add_ps(fjz0,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq01,_mm256_sub_ps(_mm256_add_ps(rinv01,_mm256_mul_ps(krf,rsq01)),crf));
-            felec            = _mm256_mul_ps(qq01,_mm256_sub_ps(_mm256_mul_ps(rinv01,rinvsq01),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq01,_mm256_sub_ps(_mm256_mul_ps(rinv01,rinvsq01),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -829,14 +860,16 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx1             = _mm256_add_ps(fjx1,tx);
             fjy1             = _mm256_add_ps(fjy1,ty);
             fjz1             = _mm256_add_ps(fjz1,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq02,_mm256_sub_ps(_mm256_add_ps(rinv02,_mm256_mul_ps(krf,rsq02)),crf));
-            felec            = _mm256_mul_ps(qq02,_mm256_sub_ps(_mm256_mul_ps(rinv02,rinvsq02),krf2));
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq02,_mm256_sub_ps(_mm256_mul_ps(rinv02,rinvsq02),krf2));
 
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
@@ -859,18 +892,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx2             = _mm256_add_ps(fjx2,tx);
             fjy2             = _mm256_add_ps(fjy2,ty);
             fjz2             = _mm256_add_ps(fjz2,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_add_ps(rinv10,_mm256_mul_ps(krf,rsq10)),crf));
-            felec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_mul_ps(rinv10,rinvsq10),krf2));
-
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq10,_mm256_sub_ps(_mm256_mul_ps(rinv10,rinvsq10),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -889,18 +925,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx0             = _mm256_add_ps(fjx0,tx);
             fjy0             = _mm256_add_ps(fjy0,ty);
             fjz0             = _mm256_add_ps(fjz0,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq11,_mm256_sub_ps(_mm256_add_ps(rinv11,_mm256_mul_ps(krf,rsq11)),crf));
-            felec            = _mm256_mul_ps(qq11,_mm256_sub_ps(_mm256_mul_ps(rinv11,rinvsq11),krf2));
+if(mdatoms->calc_force!=32){
 
+            felec            = _mm256_mul_ps(qq11,_mm256_sub_ps(_mm256_mul_ps(rinv11,rinvsq11),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -919,18 +958,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx1             = _mm256_add_ps(fjx1,tx);
             fjy1             = _mm256_add_ps(fjy1,ty);
             fjz1             = _mm256_add_ps(fjz1,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq12,_mm256_sub_ps(_mm256_add_ps(rinv12,_mm256_mul_ps(krf,rsq12)),crf));
-            felec            = _mm256_mul_ps(qq12,_mm256_sub_ps(_mm256_mul_ps(rinv12,rinvsq12),krf2));
-
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq12,_mm256_sub_ps(_mm256_mul_ps(rinv12,rinvsq12),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -949,18 +991,22 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx2             = _mm256_add_ps(fjx2,tx);
             fjy2             = _mm256_add_ps(fjy2,ty);
             fjz2             = _mm256_add_ps(fjz2,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_add_ps(rinv20,_mm256_mul_ps(krf,rsq20)),crf));
-            felec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_mul_ps(rinv20,rinvsq20),krf2));
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq20,_mm256_sub_ps(_mm256_mul_ps(rinv20,rinvsq20),krf2));
 
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -979,18 +1025,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx0             = _mm256_add_ps(fjx0,tx);
             fjy0             = _mm256_add_ps(fjy0,ty);
             fjz0             = _mm256_add_ps(fjz0,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq21,_mm256_sub_ps(_mm256_add_ps(rinv21,_mm256_mul_ps(krf,rsq21)),crf));
-            felec            = _mm256_mul_ps(qq21,_mm256_sub_ps(_mm256_mul_ps(rinv21,rinvsq21),krf2));
-
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq21,_mm256_sub_ps(_mm256_mul_ps(rinv21,rinvsq21),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -1009,18 +1058,21 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
             fjx1             = _mm256_add_ps(fjx1,tx);
             fjy1             = _mm256_add_ps(fjy1,ty);
             fjz1             = _mm256_add_ps(fjz1,tz);
-
+}
             /**************************
              * CALCULATE INTERACTIONS *
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
             velec            = _mm256_mul_ps(qq22,_mm256_sub_ps(_mm256_add_ps(rinv22,_mm256_mul_ps(krf,rsq22)),crf));
-            felec            = _mm256_mul_ps(qq22,_mm256_sub_ps(_mm256_mul_ps(rinv22,rinvsq22),krf2));
-
+if(mdatoms->calc_force!=32){
+ 
+           felec            = _mm256_mul_ps(qq22,_mm256_sub_ps(_mm256_mul_ps(rinv22,rinvsq22),krf2));
+}
             /* Update potential sum for this i atom from the interaction with this j atom. */
             velec            = _mm256_andnot_ps(dummy_mask,velec);
             velecsum         = _mm256_add_ps(velecsum,velec);
+if(mdatoms->calc_force!=32){
 
             fscal            = felec;
 
@@ -1051,15 +1103,16 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_VF_avx_256_single
 
             gmx_mm256_decrement_3rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,
                                                       fjx0,fjy0,fjz0,fjx1,fjy1,fjz1,fjx2,fjy2,fjz2);
-
+}
             /* Inner loop uses 288 flops */
         }
 
         /* End of innermost loop */
 
+if(mdatoms->calc_force!=32){
         gmx_mm256_update_iforce_3atom_swizzle_ps(fix0,fiy0,fiz0,fix1,fiy1,fiz1,fix2,fiy2,fiz2,
                                                  f+i_coord_offset,fshift+i_shift_offset);
-
+}
         ggid                        = gid[iidx];
         /* Update potential energies */
         gmx_mm256_update_1pot_ps(velecsum,kernel_data->energygrp_elec+ggid);
@@ -1758,6 +1811,8 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_F_avx_256_single
              **************************/
 
             /* REACTION-FIELD ELECTROSTATICS */
+if(mdatoms->calc_force!=32){
+
             felec            = _mm256_mul_ps(qq00,_mm256_sub_ps(_mm256_mul_ps(rinv00,rinvsq00),krf2));
 
             fscal            = felec;
@@ -1986,18 +2041,17 @@ nb_kernel_ElecRF_VdwNone_GeomW3W3_F_avx_256_single
             fjptrF             = (jnrlistF>=0) ? f+j_coord_offsetF : scratch;
             fjptrG             = (jnrlistG>=0) ? f+j_coord_offsetG : scratch;
             fjptrH             = (jnrlistH>=0) ? f+j_coord_offsetH : scratch;
-
             gmx_mm256_decrement_3rvec_8ptr_swizzle_ps(fjptrA,fjptrB,fjptrC,fjptrD,fjptrE,fjptrF,fjptrG,fjptrH,
                                                       fjx0,fjy0,fjz0,fjx1,fjy1,fjz1,fjx2,fjy2,fjz2);
-
+}
             /* Inner loop uses 243 flops */
         }
 
         /* End of innermost loop */
-
+if(mdatoms->calc_force!=32){
         gmx_mm256_update_iforce_3atom_swizzle_ps(fix0,fiy0,fiz0,fix1,fiy1,fiz1,fix2,fiy2,fiz2,
                                                  f+i_coord_offset,fshift+i_shift_offset);
-
+}
         /* Increment number of inner iterations */
         inneriter                  += j_index_end - j_index_start;
 

@@ -38,7 +38,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
 #include <math.h>
 #include <string.h>
 #include <assert.h>
@@ -227,6 +226,7 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
     double      clam_i, vlam_i;
     real        dvdl_dum[efptNR], dvdl, dvdl_nb[efptNR], lam_i[efptNR];
     real        dvdlsum;
+    int 	replica_flags=0;
 
     /*Shiv's additions*/
     double      de_epot; /*Stores potential energy difference 
@@ -317,18 +317,23 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
         donb_flags = 0;
         /* Add short-range interactions */
         donb_flags |= GMX_NONBONDED_DO_SR;
+        replica_flags |= GMX_NONBONDED_DO_SR;
 
         if (flags & GMX_FORCE_FORCES)
         {
             donb_flags |= GMX_NONBONDED_DO_FORCE;
+	    //replica_flags |= GMX_NONBONDED_DO_FORCE;
         }
+	
         if (flags & GMX_FORCE_ENERGY)
         {
             donb_flags |= GMX_NONBONDED_DO_POTENTIAL;
+	    replica_flags |= GMX_NONBONDED_DO_POTENTIAL;
         }
         if (flags & GMX_FORCE_DO_LR)
         {
             donb_flags |= GMX_NONBONDED_DO_LR;
+	    replica_flags|=GMX_NONBONDED_DO_LR;
         }
     /* Shiv's addition - be careful while modifying this section of the code 
 	as the module is arterial to GROMACS as a whole. */
@@ -399,12 +404,34 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
                      &enerd->grpp, box_size, nrnb,
                      lambda, dvdl_nb, -1, -1, donb_flags);
 
+/*	md->calc_force=32;
+
+		for(i=0;i<10;i++)
+		{
+
+		do_nonbonded(cr, fr, x, f, f_longrange, md, excl,
+                             &(enerd->foreign_grpp), box_size, nrnb,
+                              lambda, dvdl_nb, -1, -1,
+                             //(donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);
+                           //GMX_NONBONDED_DO_FORCE); //POTENTIAL);             
+                                replica_flags);
+
+
+
+		}		
+
+*/
+
+	md->calc_force=0;
+	
+
         /* If we do foreign lambda and we have soft-core interactions
          * we have to recalculate the (non-linear) energies contributions.
          */
         //if (fepvals->n_lambda > 0 && (flags & GMX_FORCE_DHDL) && fepvals->sc_alpha != 0)
         if(fepvals->n_lambda>0&&do_per_step(enerd->steps, enerd->lambda_steps))
         {
+	    md->calc_force=32;
             originalVdw=md->table_vdw->lookup;
             originalQ=md->table_q->lookup;
                 for (i = 0; i < cr->ms->nsim; i++)
@@ -424,12 +451,13 @@ void do_force_lowlevel(FILE       *fplog,   gmx_large_int_t step,
                               lambda, dvdl_nb, -1, -1, 
 			     //(donb_flags & ~GMX_NONBONDED_DO_FORCE) | GMX_NONBONDED_DO_FOREIGNLAMBDA);
 		 	   //GMX_NONBONDED_DO_FORCE); //POTENTIAL);             
-				GMX_NONBONDED_DO_FOREIGNLAMBDA); //donb_flags);
+				replica_flags);
 			   //GMX_NONBONDED_DO_FOREIGNLAMBDA);
                     sum_epot(&ir->opts, &(enerd->foreign_grpp), enerd->foreign_term);
                     enerd->enerpart_lambda[i] = enerd->foreign_term[F_EPOT];
 
                 }
+            md->calc_force=0;
 	
             md->table_vdw->lookup=originalVdw;  
             md->table_q->lookup=originalQ;
